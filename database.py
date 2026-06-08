@@ -47,9 +47,30 @@ class Setting(Base):
     key = Column(String, primary_key=True)
     value = Column(Text, nullable=False)
 
+DEFAULT_CATEGORIES = "Anillo, Collar, Aretes, Pulsera, Dije, Cadena, Gargantilla, Esclava, Baño de Oro, Otro"
+DEFAULT_MATERIALS = "Oro 18K, Oro 24K, Oro Blanco, Oro Rosa, Plata 925, Plata Ley, Platino, Acero Inoxidable, Baño de Oro, Con Pedrería"
+
 def init_db():
     """Inicializa la base de datos y crea la tabla si no existe."""
     Base.metadata.create_all(bind=engine)
+    
+    # Inicializar configuraciones por defecto si no existen
+    session = SessionLocal()
+    try:
+        cat = session.query(Setting).filter(Setting.key == "categories").first()
+        if not cat:
+            session.add(Setting(key="categories", value=DEFAULT_CATEGORIES))
+            
+        mat = session.query(Setting).filter(Setting.key == "materials").first()
+        if not mat:
+            session.add(Setting(key="materials", value=DEFAULT_MATERIALS))
+            
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Error al inicializar configuraciones por defecto: {e}")
+    finally:
+        session.close()
 
 def get_setting(key, default_value=None):
     """Obtiene el valor de una configuración por su clave."""
