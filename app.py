@@ -40,6 +40,17 @@ def encode_image_to_base64(uploaded_file):
         st.error(f"Error al procesar la imagen: {e}")
         return ""
 
+def get_local_image_base64(file_path):
+    """Convierte una imagen local en una cadena Base64."""
+    if not os.path.exists(file_path):
+        return None
+    try:
+        with open(file_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+        return f"data:image/jpeg;base64,{encoded_string}"
+    except Exception:
+        return None
+
 # Configuración de página con título e ícono
 st.set_page_config(
     page_title="Gestor de Joyas - Paola España Ribera",
@@ -97,48 +108,92 @@ st.markdown("""
         box-shadow: 0 4px 10px rgba(212, 175, 55, 0.25);
     }
     
+    /* Estilos de pestañas de navegación personalizadas */
+    button[kind="primary"] {
+        background-color: #1A2B4C !important;
+        color: #D4AF37 !important;
+        border: 1px solid #D4AF37 !important;
+        border-bottom: 3px solid #D4AF37 !important;
+        font-weight: bold !important;
+        border-radius: 6px 6px 0 0 !important;
+        padding: 0.6rem 1rem !important;
+        box-shadow: 0 4px 15px rgba(26, 43, 76, 0.15) !important;
+    }
+    
+    button[kind="secondary"] {
+        background-color: #FFFFFF !important;
+        color: #64748B !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 6px 6px 0 0 !important;
+        padding: 0.6rem 1rem !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    button[kind="secondary"]:hover {
+        color: #1A2B4C !important;
+        border-color: #D4AF37 !important;
+        background-color: #F8FAFC !important;
+    }
+    
     /* Tarjetas de productos en la galería */
     .product-card {
         background-color: #FFFFFF;
-        border-radius: 8px;
+        border-radius: 12px;
         border: 1px solid #E2E8F0;
-        padding: 16px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
     }
     
     .product-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 30px rgba(212, 175, 55, 0.18);
         border-color: #D4AF37;
+    }
+    
+    /* Efecto zoom de imagen elegante en las tarjetas */
+    .product-card img {
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border-radius: 8px !important;
+    }
+    
+    .product-card:hover img {
+        transform: scale(1.06) !important;
     }
     
     /* Etiquetas de categoría y material */
     .badge-cat {
-        background-color: #EBF8FF;
-        color: #2B6CB0;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-right: 4px;
-        display: inline-block;
+        background-color: #FFFFFF !important;
+        color: #1A2B4C !important;
+        padding: 5px 14px !important;
+        border-radius: 50px !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        margin-right: 6px !important;
+        margin-bottom: 6px !important;
+        display: inline-block !important;
+        border: 1px solid #D4AF37 !important;
+        box-shadow: 0 2px 5px rgba(212,175,55,0.05) !important;
     }
     
     .badge-mat {
-        background-color: #FEFCBF;
-        color: #B7791F;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-right: 4px;
-        display: inline-block;
+        background-color: #1A2B4C !important;
+        color: #D4AF37 !important;
+        padding: 5px 14px !important;
+        border-radius: 50px !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        margin-right: 6px !important;
+        margin-bottom: 6px !important;
+        display: inline-block !important;
+        border: 1px solid #D4AF37 !important;
+        box-shadow: 0 2px 5px rgba(26,43,76,0.1) !important;
     }
     
     .price-text {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
         font-weight: 700;
         color: #27AE60;
         margin-top: 8px;
@@ -190,30 +245,112 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 4px 10px rgba(37, 211, 102, 0.25);
     }
+    
+    /* Footer de lujo */
+    .footer-lux {
+        background: linear-gradient(135deg, #1A2B4C 0%, #0F172A 100%);
+        color: #E2E8F0;
+        padding: 2.5rem 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 4rem;
+        border-top: 4px solid #D4AF37;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .footer-lux h4 {
+        color: #D4AF37 !important;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .footer-lux p {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        color: #CBD5E1;
+    }
     </style>
-
 """, unsafe_allow_html=True)
 
-# --- LISTAS DE SELECCIÓN (CASILLAS DE VERIFICACIÓN) ---
-CATEGORIES = ["Anillo", "Collar", "Aretes", "Pulsera", "Dije", "Cadena", "Gargantilla", "Esclava", "Otro"]
-MATERIALS = ["Oro 18K", "Oro 24K", "Oro Blanco", "Oro Rosa", "Plata 925", "Plata Ley", "Platino", "Acero Inoxidable", "Baño de Oro", "Con Pedrería"]
+# --- LISTAS DE SELECCIÓN DINÁMICAS DESDE LA BASE DE DATOS ---
+categories_setting = database.get_setting("categories", database.DEFAULT_CATEGORIES)
+materials_setting = database.get_setting("materials", database.DEFAULT_MATERIALS)
 
-# Banner de Encabezado Principal
-st.markdown("""
-    <div class="header-banner">
-        <h1>Joyas Paola España Ribera</h1>
-        <p>Catálogo Digital y Gestión de Inventario Exclusivo</p>
-    </div>
-""", unsafe_allow_html=True)
+CATEGORIES = [c.strip() for c in categories_setting.split(",") if c.strip()]
+MATERIALS = [m.strip() for m in materials_setting.split(",") if m.strip()]
+
+
+# --- ICONOS PARA CATEGORÍAS Y MATERIALES ---
+CATEGORY_ICONS = {
+    "anillo": "💍",
+    "collar": "📿",
+    "arete": "💎",
+    "pulsera": "✨",
+    "dije": "🌟",
+    "cadena": "🔗",
+    "gargantilla": "🎗️",
+    "esclava": "💫",
+    "baño de oro": "👑",
+    "otro": "💎"
+}
+
+MATERIAL_ICONS = {
+    "oro 18k": "🟡",
+    "oro 24k": "🟡",
+    "oro blanco": "⚪",
+    "oro rosa": "🌸",
+    "plata": "⚪",
+    "platino": "💿",
+    "acero": "🦾",
+    "baño de oro": "👑",
+    "pedrería": "✨"
+}
+
+def get_cat_with_icon(cat_name):
+    c_clean = cat_name.strip()
+    for key, icon in CATEGORY_ICONS.items():
+        if key in c_clean.lower():
+            return f"{icon} {c_clean}"
+    return f"💎 {c_clean}"
+
+def get_mat_with_icon(mat_name):
+    m_clean = mat_name.strip()
+    for key, icon in MATERIAL_ICONS.items():
+        if key in m_clean.lower():
+            return f"{icon} {m_clean}"
+    return f"✨ {m_clean}"
+
+# Banner de Encabezado Principal con Logo
+logo_b64 = get_local_image_base64("logo.jpeg")
+if logo_b64:
+    st.markdown(f"""
+        <div class="header-banner" style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #1A2B4C 0%, #0F172A 100%); border: 1px solid #D4AF37; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+            <img src="{logo_b64}" style="max-height: 120px; margin-bottom: 10px; border-radius: 8px;">
+            <p style="color: #D4AF37; font-size: 1.25rem; font-style: italic; margin-top: 0.5rem; font-family: 'Playfair Display', serif; letter-spacing: 1px; font-weight: 600;">"Brillo eterno y elegancia exclusiva en cada detalle"</p>
+        </div>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <div class="header-banner">
+            <h1>Joyas Paola España Ribera</h1>
+            <p style="color: #D4AF37; font-size: 1.25rem; font-style: italic; font-family: 'Playfair Display', serif; font-weight: 600;">"Brillo eterno y elegancia exclusiva en cada detalle"</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+# --- LOGO PERMANENTE EN LA PARTE SUPERIOR DEL SIDEBAR ---
+logo_path = "logo.jpeg"
+if os.path.exists(logo_path):
+    st.sidebar.image(logo_path, use_container_width=True)
+    st.sidebar.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
 
 # --- PANEL DE ADMINISTRACIÓN EN SIDEBAR ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("🔒 Panel de Administración")
 
+
 if not st.session_state.is_admin:
     admin_pwd_input = st.sidebar.text_input("Contraseña Administrador", type="password", key="admin_pwd_sidebar")
     if st.sidebar.button("Ingresar como Admin", key="admin_login_btn"):
-        db_pwd = database.get_setting("admin_password", "PAOLA_ADMIN")
+        db_pwd = database.get_setting("admin_password", "papavi")
         if admin_pwd_input == db_pwd:
             st.session_state.is_admin = True
             st.sidebar.success("¡Sesión iniciada!")
@@ -230,23 +367,37 @@ else:
 
 # Definir pestañas según rol
 if st.session_state.is_admin:
-    tab_gallery, tab_cart, tab_add, tab_manage, tab_config = st.tabs([
+    tabs = [
         "🛍️ Catálogo y PDF", 
         "🛒 Mi Carrito",
         "➕ Agregar Nueva Joya", 
         "⚙️ Gestionar Inventario",
         "🔧 Configuración de Tienda"
-    ])
+    ]
 else:
-    tab_gallery, tab_cart = st.tabs([
+    tabs = [
         "🛍️ Catálogo Digital", 
         "🛒 Mi Carrito"
-    ])
+    ]
 
+if 'active_tab' not in st.session_state or st.session_state.active_tab not in tabs:
+    st.session_state.active_tab = tabs[0]
+
+# Renderizar pestañas horizontales premium usando st.columns
+cols = st.columns(len(tabs))
+for idx, tab_name in enumerate(tabs):
+    with cols[idx]:
+        is_active = (st.session_state.active_tab == tab_name)
+        button_type = "primary" if is_active else "secondary"
+        if st.button(tab_name, key=f"nav_tab_{idx}", use_container_width=True, type=button_type):
+            st.session_state.active_tab = tab_name
+            st.rerun()
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # --- CONTENIDO: AGREGAR NUEVA JOYA ---
-if st.session_state.is_admin:
-    with tab_add:
+if st.session_state.is_admin and st.session_state.active_tab == "➕ Agregar Nueva Joya":
+    if True:
         st.subheader("Agregar una nueva joya al inventario")
         
         with st.form("add_product_form", clear_on_submit=True):
@@ -309,7 +460,7 @@ if st.session_state.is_admin:
                     st.rerun()
 
 # --- CONTENIDO: CATÁLOGO Y GENERACIÓN DE PDF ---
-with tab_gallery:
+if st.session_state.active_tab in ["🛍️ Catálogo Digital", "🛍️ Catálogo y PDF"]:
     # Sidebar de filtros y controles
     st.sidebar.header("Filtros del Catálogo")
     
@@ -334,7 +485,7 @@ with tab_gallery:
     st.sidebar.markdown("---")
     st.sidebar.header("Generación de Catálogo PDF")
     catalog_pdf_title = st.sidebar.text_input("Título del Catálogo", "Catálogo de Joyería Fina")
-    catalog_pdf_logo = st.sidebar.file_uploader("Logo de la Empresa (opcional)", type=["png", "jpg", "jpeg"], key="catalog_logo_uploader")
+
     
     # Obtener todas las joyas
     all_items = database.get_all_items()
@@ -359,6 +510,13 @@ with tab_gallery:
                 continue
                 
         filtered_items.append(item)
+        
+    # Mostrar video promocional de la joyería si existe
+    video_path = "procesalo.mp4"
+    if os.path.exists(video_path):
+        st.write("✨ **Conoce Nuestra Colección Exclusiva:**")
+        st.video(video_path, autoplay=True, loop=True, muted=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         
     st.subheader(f"Catálogo de Joyas ({len(filtered_items)} mostradas)")
     
@@ -388,7 +546,7 @@ with tab_gallery:
         if pdf_btn:
             pdf_filename = "catalogo_joyas.pdf"
             try:
-                logo_base64 = encode_image_to_base64(catalog_pdf_logo) if catalog_pdf_logo else None
+                logo_base64 = get_local_image_base64("logo.jpeg")
                 pdf_generator.generate_catalog_pdf(
                     items_to_include, 
                     output_filename=pdf_filename, 
@@ -452,8 +610,8 @@ with tab_gallery:
                 cats = [c.strip() for c in (item['category'] or '').split(',')]
                 mats = [m.strip() for m in (item['material'] or '').split(',')]
                 
-                badges_cat_html = "".join([f'<span class="badge-cat">{c}</span>' for c in cats if c])
-                badges_mat_html = "".join([f'<span class="badge-mat">{m}</span>' for m in mats if m])
+                badges_cat_html = "".join([f'<span class="badge-cat">{get_cat_with_icon(c)}</span>' for c in cats if c])
+                badges_mat_html = "".join([f'<span class="badge-mat">{get_mat_with_icon(m)}</span>' for m in mats if m])
                 
                 st.markdown(f"<div>{badges_cat_html}{badges_mat_html}</div>", unsafe_allow_html=True)
                 
@@ -486,6 +644,11 @@ with tab_gallery:
                         if st.button("➕", key=f"plus_cart_{item_id}"):
                             st.session_state.cart[item_id] += 1
                             st.rerun()
+                    
+                    # Botón para ir al carrito
+                    if st.button("🛒 Ver mi Carrito", key=f"go_to_cart_btn_{item_id}", use_container_width=True):
+                        st.session_state.active_tab = "🛒 Mi Carrito"
+                        st.rerun()
                 else:
                     if st.button("🛒 Añadir al Carrito", key=f"add_cart_{item_id}", use_container_width=True):
                         st.session_state.cart[item_id] = 1
@@ -493,8 +656,8 @@ with tab_gallery:
                 st.write("")
 
 # --- CONTENIDO: GESTIONAR INVENTARIO (TABLA Y EDICIÓN/ELIMINACIÓN) ---
-if st.session_state.is_admin:
-    with tab_manage:
+if st.session_state.is_admin and st.session_state.active_tab == "⚙️ Gestionar Inventario":
+    if True:
         st.subheader("Administrar Joyas Registradas")
         
         # Obtener todos los productos
@@ -546,6 +709,7 @@ if st.session_state.is_admin:
                                     st.image(item_to_edit['image_path'], width=150, caption="Imagen actual")
                             
                             edit_uploaded_image = st.file_uploader("Subir nueva imagen (reemplazará la actual)", type=["jpg", "jpeg", "png"])
+                            delete_image = st.checkbox("Eliminar imagen actual (dejar la joya sin foto)", key="edit_delete_image_chk")
                             
                         col_btn1, col_btn2 = st.columns(2)
                         with col_btn1:
@@ -565,8 +729,9 @@ if st.session_state.is_admin:
                             else:
                                 new_image_path = item_to_edit['image_path']
                                 
-                                # Si se subió una nueva imagen, codificar a Base64
-                                if edit_uploaded_image is not None:
+                                if delete_image:
+                                    new_image_path = ""
+                                elif edit_uploaded_image is not None:
                                     new_image_path = encode_image_to_base64(edit_uploaded_image)
                                         
                                 # Actualizar en base de datos
@@ -593,46 +758,50 @@ if st.session_state.is_admin:
             st.write("Joyas Registradas:")
             
             # Encabezados de tabla
-            t_col_id, t_col_img, t_col_name, t_col_cat, t_col_mat, t_col_price, t_col_actions = st.columns([0.5, 1, 2, 2, 2, 1, 1.5])
+            t_col_id, t_col_img, t_col_name, t_col_cat, t_col_mat, t_col_price, t_col_actions = st.columns([0.8, 1.2, 2.5, 2.5, 2.5, 1.5, 2.0])
             
             with t_col_id:
-                st.markdown("**ID**")
+                st.markdown('<div class="notranslate" style="font-weight: bold; color: #1A2B4C;">🆔 ID</div>', unsafe_allow_html=True)
             with t_col_img:
-                st.markdown("**Imagen**")
+                st.markdown('<div style="font-weight: bold; color: #1A2B4C;">🖼️ Imagen</div>', unsafe_allow_html=True)
             with t_col_name:
-                st.markdown("**Nombre**")
+                st.markdown('<div style="font-weight: bold; color: #1A2B4C;">📝 Nombre</div>', unsafe_allow_html=True)
             with t_col_cat:
-                st.markdown("**Categorías**")
+                st.markdown('<div style="font-weight: bold; color: #1A2B4C;">🏷️ Categorías</div>', unsafe_allow_html=True)
             with t_col_mat:
-                st.markdown("**Materiales**")
+                st.markdown('<div style="font-weight: bold; color: #1A2B4C;">🛠️ Materiales</div>', unsafe_allow_html=True)
             with t_col_price:
-                st.markdown("**Precio**")
+                st.markdown('<div style="font-weight: bold; color: #1A2B4C;">💰 Precio</div>', unsafe_allow_html=True)
             with t_col_actions:
-                st.markdown("**Acciones**")
+                st.markdown('<div style="font-weight: bold; color: #1A2B4C;">⚙️ Acciones</div>', unsafe_allow_html=True)
                 
-            st.markdown("<hr style='margin: 5px 0 10px 0;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 5px 0 10px 0; border-top: 2px solid #E2E8F0;'>", unsafe_allow_html=True)
             
             for item in all_items:
-                r_col_id, r_col_img, r_col_name, r_col_cat, r_col_mat, r_col_price, r_col_actions = st.columns([0.5, 1, 2, 2, 2, 1, 1.5])
+                r_col_id, r_col_img, r_col_name, r_col_cat, r_col_mat, r_col_price, r_col_actions = st.columns([0.8, 1.2, 2.5, 2.5, 2.5, 1.5, 2.0])
                 
                 with r_col_id:
-                    st.write(item['id'])
+                    st.markdown(f'<div class="notranslate" style="background-color: #E2E8F0; color: #1A2B4C; padding: 4px 8px; border-radius: 6px; text-align: center; font-weight: bold; width: fit-content; margin-top: 10px;">{item["id"]}</div>', unsafe_allow_html=True)
                 with r_col_img:
                     if item['image_path']:
                         if item['image_path'].startswith("data:image") or os.path.exists(item['image_path']):
-                            st.image(item['image_path'], width=50)
+                            st.image(item['image_path'], width=65)
                         else:
-                            st.write("Sin foto")
+                            st.markdown('<div style="color: #64748B; font-style: italic; margin-top: 10px;">Sin foto</div>', unsafe_allow_html=True)
                     else:
-                        st.write("Sin foto")
+                        st.markdown('<div style="color: #64748B; font-style: italic; margin-top: 10px;">Sin foto</div>', unsafe_allow_html=True)
                 with r_col_name:
-                    st.write(item['name'])
+                    st.markdown(f'<div style="font-weight: 600; color: #1A2B4C; margin-top: 10px;">{item["name"]}</div>', unsafe_allow_html=True)
                 with r_col_cat:
-                    st.write(item['category'])
+                    # Mostrar las categorías con sus iconos
+                    cats_styled = ", ".join([get_cat_with_icon(c) for c in (item['category'] or '').split(',') if c.strip()])
+                    st.markdown(f'<div style="font-size: 0.9rem; margin-top: 10px;">{cats_styled}</div>', unsafe_allow_html=True)
                 with r_col_mat:
-                    st.write(item['material'])
+                    # Mostrar los materiales con sus iconos
+                    mats_styled = ", ".join([get_mat_with_icon(m) for m in (item['material'] or '').split(',') if m.strip()])
+                    st.markdown(f'<div style="font-size: 0.9rem; margin-top: 10px;">{mats_styled}</div>', unsafe_allow_html=True)
                 with r_col_price:
-                    st.write(f"Bs. {item['price']:,.2f}")
+                    st.markdown(f'<div style="color: #27AE60; font-weight: bold; font-size: 1.1rem; margin-top: 10px;">Bs. {item["price"]:,.2f}</div>', unsafe_allow_html=True)
                 with r_col_actions:
                     # Botones de editar y eliminar
                     col_btn_edit, col_btn_del = st.columns(2)
@@ -645,10 +814,10 @@ if st.session_state.is_admin:
                             database.delete_item(item['id'])
                             st.success(f"Joya ID {item['id']} eliminada.")
                             st.rerun()
-                st.markdown("<hr style='margin: 5px 0;'>", unsafe_allow_html=True)
+                st.markdown("<hr style='margin: 8px 0; border-top: 1px solid #F1F5F9;'>", unsafe_allow_html=True)
 
 # --- CONTENIDO: MI CARRITO ---
-with tab_cart:
+if st.session_state.active_tab == "🛒 Mi Carrito":
     st.subheader("🛒 Tu Carrito de Compras")
     
     if not st.session_state.cart:
@@ -731,11 +900,31 @@ with tab_cart:
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
                         const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-                        navigator.clipboard.writeText(mapsUrl).then(() => {
+                        // Intentar copiar al portapapeles
+                        navigator.clipboard.writeText(mapsUrl).catch(err => console.log("Error al copiar:", err));
+                        
+                        // Intentar pegar directamente en el campo de texto del padre
+                        try {
+                            const parentDoc = window.parent.document;
+                            const inputs = parentDoc.getElementsByTagName('input');
+                            let target = null;
+                            for (let i = 0; i < inputs.length; i++) {
+                                if (inputs[i].placeholder && inputs[i].placeholder.indexOf("https://www.google.com/maps") !== -1) {
+                                    target = inputs[i];
+                                    break;
+                                }
+                            }
+                            if (target) {
+                                target.value = mapsUrl;
+                                target.dispatchEvent(new Event('input', { bubbles: true }));
+                                target.dispatchEvent(new Event('change', { bubbles: true }));
+                                status.innerHTML = "✅ <b>¡Ubicación detectada y pegada arriba automáticamente!</b>";
+                            } else {
+                                status.innerHTML = "✅ <b>¡Ubicación copiada!</b> Pégala en el campo de arriba (Ctrl+V).";
+                            }
+                        } catch (e) {
                             status.innerHTML = "✅ <b>¡Ubicación copiada!</b> Pégala en el campo de arriba (Ctrl+V).";
-                        }).catch(err => {
-                            status.innerHTML = `Copia este enlace: <a href="${mapsUrl}" target="_blank" style="color:#27AE60;">${mapsUrl}</a>`;
-                        });
+                        }
                     },
                     (error) => {
                         status.textContent = "Error al obtener ubicación: " + error.message;
@@ -846,12 +1035,12 @@ with tab_cart:
                     st.rerun()
 
 # --- CONTENIDO: CONFIGURACIÓN DE LA TIENDA ---
-if st.session_state.is_admin:
-    with tab_config:
+if st.session_state.is_admin and st.session_state.active_tab == "🔧 Configuración de Tienda":
+    if True:
         st.subheader("🔧 Configuración Global de la Tienda")
         
         current_wa = database.get_setting("whatsapp_number", "59172825322")
-        current_pwd = database.get_setting("admin_password", "PAOLA_ADMIN")
+        current_pwd = database.get_setting("admin_password", "papavi")
         current_qr = database.get_setting("qr_code")
         
         with st.form("store_settings_form"):
@@ -861,6 +1050,10 @@ if st.session_state.is_admin:
             st.markdown("### 🔒 Seguridad")
             new_pwd = st.text_input("Contraseña del Panel de Administración*", value=current_pwd, type="password")
             confirm_pwd = st.text_input("Confirmar Contraseña Administrador*", value=current_pwd, type="password")
+
+            st.markdown("### 🏷️ Categorías y Materiales de Joyería")
+            new_categories = st.text_area("Categorías disponibles (separadas por comas)*", value=categories_setting, help="Ej: Anillo, Collar, Aretes, Pulsera, Dije, Cadena, Otro")
+            new_materials = st.text_area("Materiales disponibles (separados por comas)*", value=materials_setting, help="Ej: Oro 18K, Oro Blanco, Plata 925, Baño de Oro, Con Pedrería")
             
             st.markdown("### 💸 Método de Pago QR")
             if current_qr:
@@ -877,9 +1070,15 @@ if st.session_state.is_admin:
                     st.error("La contraseña de administrador es requerida.")
                 elif new_pwd != confirm_pwd:
                     st.error("Las contraseñas no coinciden.")
+                elif not new_categories:
+                    st.error("Debes ingresar al menos una categoría.")
+                elif not new_materials:
+                    st.error("Debes ingresar al menos un material.")
                 else:
                     database.set_setting("whatsapp_number", new_wa)
                     database.set_setting("admin_password", new_pwd)
+                    database.set_setting("categories", new_categories)
+                    database.set_setting("materials", new_materials)
                     
                     if new_qr_file is not None:
                         qr_base_64 = encode_image_to_base64(new_qr_file)
@@ -887,3 +1086,17 @@ if st.session_state.is_admin:
                         
                     st.success("¡Configuración guardada exitosamente!")
                     st.rerun()
+
+# --- PIE DE PÁGINA (FOOTER) DE LUJO ---
+st.markdown("""
+    <div class="footer-lux">
+        <h4>💎 Joyería Paola España Ribera 💎</h4>
+        <p>Exclusividad, Calidad y Elegancia en cada Pieza</p>
+        <p style="font-size: 0.85rem; color: #94A3B8; margin-top: 10px;">
+            📍 Envíos a todo el país | 💳 Pagos Seguros vía QR | 📱 Soporte por WhatsApp: +591 72825322
+        </p>
+        <p style="font-size: 0.75rem; color: #64748B; margin-top: 15px; border-top: 1px solid #1E293B; padding-top: 10px;">
+            © 2026 Paola España Ribera. Todos los derechos reservados.
+        </p>
+    </div>
+""", unsafe_allow_html=True)
