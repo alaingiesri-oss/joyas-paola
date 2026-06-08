@@ -42,9 +42,44 @@ class Jewelry(Base):
     image_path = Column(Text) # Puede ser una ruta local o una cadena Base64
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+class Setting(Base):
+    __tablename__ = "settings"
+    key = Column(String, primary_key=True)
+    value = Column(Text, nullable=False)
+
 def init_db():
     """Inicializa la base de datos y crea la tabla si no existe."""
     Base.metadata.create_all(bind=engine)
+
+def get_setting(key, default_value=None):
+    """Obtiene el valor de una configuración por su clave."""
+    session = SessionLocal()
+    try:
+        setting = session.query(Setting).filter(Setting.key == key).first()
+        if setting:
+            return setting.value
+        return default_value
+    except Exception:
+        return default_value
+    finally:
+        session.close()
+
+def set_setting(key, value):
+    """Guarda o actualiza una configuración de la tienda."""
+    session = SessionLocal()
+    try:
+        setting = session.query(Setting).filter(Setting.key == key).first()
+        if setting:
+            setting.value = str(value)
+        else:
+            new_setting = Setting(key=key, value=str(value))
+            session.add(new_setting)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Error al guardar configuración: {e}")
+    finally:
+        session.close()
 
 def add_item(name, category, material, price, description, image_path):
     """Agrega una nueva joya a la base de datos."""
@@ -129,14 +164,6 @@ def delete_item(item_id):
     try:
         item = session.query(Jewelry).filter(Jewelry.id == item_id).first()
         if item:
-            # Si la imagen es un archivo local (no Base64), intentar borrarla de disco
-            if item.image_path and not item.image_path.startswith("data:image"):
-                if os.path.exists(item.image_path):
-                    try:
-                        os.remove(item.image_path)
-                    except Exception as e:
-                        print(f"Error al eliminar imagen de disco: {e}")
-            
             session.delete(item)
             session.commit()
     finally:
